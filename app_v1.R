@@ -108,21 +108,21 @@ ui <- page_sidebar(
 
           h3("Univariate plots"),
 
-          p("Explore the distribution of each traits visually, and optionally compare distributions across different taxa. A subset of traits can be chosen."),
+          p("Explore the distribution of each traits visually, and optionally compare distributions across different taxa."),
 
-          selectizeInput(
-            inputId = "traits_uni",
-            label = "Optionally subset traits",
-            choices = NULL,
-            multiple = TRUE,
-            width = "80%",
-            options = list(
-              placeholder = "Type traits...",
-              maxOptions = 500,
-              plugins = list("remove_button"),
-              create = FALSE
-            )
-          ),
+          ## selectizeInput(
+          ##   inputId = "traits_uni",
+          ##   label = "Optionally subset traits",
+          ##   choices = NULL,
+          ##   multiple = TRUE,
+          ##   width = "80%",
+          ##   options = list(
+          ##     placeholder = "Type traits...",
+          ##     maxOptions = 500,
+          ##     plugins = list("remove_button"),
+          ##     create = FALSE
+          ##   )
+          ## ),
 
           div(style = "display: flex; justify-content: center;",
               plotOutput("plot_uni"))
@@ -290,15 +290,15 @@ server <- function(input, output, session) {
     )
   })
 
-  observe({
-    updateSelectizeInput(
-      session,
-      "traits_uni",
-      choices = input$traits,
-      selected = input$traits,
-      server = TRUE
-    )
-  })
+  ## observe({
+  ##   updateSelectizeInput(
+  ##     session,
+  ##     "traits_uni",
+  ##     choices = input$traits,
+  ##     selected = input$traits,
+  ##     server = TRUE
+  ##   )
+  ## })
 
   observe({
     req(input$traits)
@@ -392,21 +392,21 @@ server <- function(input, output, session) {
            "Please select at least one taxa to display univariate plots."))
 
     res <- results()
-    req(res, input$traits_uni)
+    req(res) ##, input$traits_uni)
 
-    ntraits <- length(input$traits_uni)
+    ntraits <- length(input$traits)
     n_cols <- min(ntraits, 3)
     n_rows <- ceiling(ntraits / n_cols)
     par(mfrow = c(n_rows, n_cols), mar = c(5,5,3,2), oma = c(0,0,0,0),
         cex.axis = 1.3, cex.lab = 1.4, cex.main = 1.4, lwd = 1.5)
     for (i in 1:ntraits) {
-      fishtraitR:::plot.get_traits(res, variables = input$traits_uni[i],
+      fishtraitR:::plot.get_traits(res, variables = input$traits[i],
                                    plot_legend = as.logical(i == 1),
                                    legend_cex = 1.5)
     }
 
   }, height = function() {
-    ntraits <- length(input$traits_uni)
+    ntraits <- length(input$traits)
     n_rows <- ceiling(ntraits / 3)
     max(400, n_rows * 400)
   }, width = 1200)
