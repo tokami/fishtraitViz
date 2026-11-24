@@ -302,12 +302,12 @@ server <- function(input, output, session) {
 
   observe({
     req(input$traits)
-    maxi <- ifelse(length(input$traits < 4), length(input$traits), 4)
+    maxi <- min(length(input$traits), 4)
     updateSelectizeInput(
       session,
       "traits_bi",
       choices = input$traits,
-      selected = input$traits[1:maxi],
+      selected = input$traits[seq_len(maxi)],
       server = TRUE
     )
   })
