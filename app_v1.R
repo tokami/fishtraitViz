@@ -5,6 +5,12 @@ library(fishtraitR)  ## needs phylosem@dev
 library(reshape2)
 library(bslib)
 
+## for metadata table
+addResourcePath(
+  prefix = "static",
+  directoryPath = "www"
+)
+
 
 ## ui -----------------------------------------------------------
 ui <- page_sidebar(
@@ -16,191 +22,214 @@ ui <- page_sidebar(
   sidebar = sidebar(
     width = 400,
 
-      h4("Taxa"),
+    h4("Taxa"),
 
     p("Select the taxa you are interested in. You can select up to 8 taxa at once; selecting more may affect the app's ability to display the information properly. Note that only the first 100 of the 35000 taxa are initally displayed as options. Start typing a taxon name to search for additional taxa. Use the remove buttons to remove individual selections or the 'Remove all taxa' button below to remove all."),
 
-      selectizeInput(
-        inputId = "taxa",
-        label = "Select taxa",
-        choices = NULL,
-        multiple = TRUE,
-        options = list(
-          placeholder = "Type taxa...",
-          maxOptions = 100,  ## TODO: 40000 works, but slows everything down... all species can still be found by start typing the name
-          maxItems = 8,
-          plugins = list("remove_button"),
-          create = FALSE
-        )
-      ),
+    selectizeInput(
+      inputId = "taxa",
+      label = "Select taxa",
+      choices = NULL,
+      multiple = TRUE,
+      options = list(
+        placeholder = "Type taxa...",
+        maxOptions = 100,  ## TODO: 40000 works, but slows everything down... all species can still be found by start typing the name
+        maxItems = 8,
+        plugins = list("remove_button"),
+        create = FALSE
+      )
+    ),
 
-      actionButton("remove_all_taxa", "Remove all taxa"),
+    actionButton("remove_all_taxa", "Remove all taxa"),
+
+    br(),
+
+    h4("Traits"),
+
+    p("Select the traits you are interested in. You can select as many traits as are available in the database. Note that the available traits might differ between database versions. Use the remove buttons to remove individual selections or the buttons below to select all and remove all traits from the selection."),
+
+    selectizeInput(
+      inputId = "traits",
+      label = "Select traits",
+      choices = NULL,
+      multiple = TRUE,
+      options = list(
+        placeholder = "Type traits...",
+        maxOptions = 100,
+        plugins = list("remove_button"),
+        create = FALSE
+      )
+    ),
+
+    actionButton("select_all_traits", "Select all traits"),
+    actionButton("remove_all_traits", "Remove all traits"),
+
+    br(),
+
+    h4("Database version"),
+
+    p("By default the latest version of the fishtrait database is used, but you can also select an older version."),
+
+    selectInput("record_id",
+                label = "Select database",
+                choices = c("latest","..."), ## TODO: show all versions
+                selected = "latest")
+
+    ## TODO: make sure that latest version is used (caching on server)
+
+  ),
+
+  navset_tab(
+
+    nav_panel(
+      "Estimates",
 
       br(),
 
-      h4("Traits"),
+      h3("Estimates"),
 
-      p("Select the traits you are interested in. You can select as many traits as are available in the database. Note that the available traits might differ between database versions. Use the remove buttons to remove individual selections or the buttons below to select all and remove all traits from the selection."),
+      p("Explore the predicted mean values of selected traits across selected taxa. Traits are shown in rows and taxa in columns. Values are rounded to three significant figures. The shown values can be downloaded as a csv file in the 'DOWNLOAD' tab."),
 
-      selectizeInput(
-        inputId = "traits",
-        label = "Select traits",
-        choices = NULL,
-        multiple = TRUE,
-        options = list(
-          placeholder = "Type traits...",
-          maxOptions = 100,
-          plugins = list("remove_button"),
-          create = FALSE
-        )
-      ),
+      div(style = "display: flex; justify-content: center;",
+          tableOutput("est_table"))
+    ),
 
-      actionButton("select_all_traits", "Select all traits"),
-      actionButton("remove_all_traits", "Remove all traits"),
+    nav_panel(
+      "Standard deviations",
 
       br(),
 
-      h4("Database version"),
+      h3("Standard deviations"),
 
-      p("By default the latest version of the fishtrait database is used, but you can also select an older version."),
+      p("Explore the predicted standard deviations of selected traits across selected taxa. Traits are shown in rows and taxa in columns. Values are rounded to three significant figures. The shown values can be downloaded as a csv file in the 'DOWNLOAD' tab."),
 
-      selectInput("record_id",
-                  label = "Select database",
-                  choices = c("latest","..."), ## TODO: show all versions
-                  selected = "latest")
+      div(style = "display: flex; justify-content: center;",
+          tableOutput("sd_table"))
+    ),
 
-      ## TODO: make sure that latest version is used (caching on server)
+    nav_panel(
+      "Univariate plots",
+
+      br(),
+
+      h3("Univariate plots"),
+
+      p("Explore the distribution of each traits visually, and optionally compare distributions across different taxa."),
+
+      ## selectizeInput(
+      ##   inputId = "traits_uni",
+      ##   label = "Optionally subset traits",
+      ##   choices = NULL,
+      ##   multiple = TRUE,
+      ##   width = "80%",
+      ##   options = list(
+      ##     placeholder = "Type traits...",
+      ##     maxOptions = 500,
+      ##     plugins = list("remove_button"),
+      ##     create = FALSE
+      ##   )
+      ## ),
+
+      div(style = "display: flex; justify-content: center;",
+          plotOutput("plot_uni"))
 
     ),
 
-      navset_tab(
+    nav_panel(
+      "Bivariate plots",
 
-        nav_panel(
-          "Estimates",
+      br(),
 
-          br(),
+      h3("Bivariate plots"),
 
-          h3("Estimates"),
+      p("Explore the covariance between two traits visually, and optionally compare covariances across different taxa. All pairwise combinations between a maximum of 4 traits can be displayed at once. The covariance matrices can be downloaded as a zip archive in the 'DOWNLOAD' tab."),
 
-          p("Explore the predicted mean values of selected traits across selected taxa. Traits are shown in rows and taxa in columns. Values are rounded to three significant figures. The shown values can be downloaded as a csv file in the 'DOWNLOAD' tab."),
-
-          div(style = "display: flex; justify-content: center;",
-              tableOutput("est_table"))
-        ),
-
-        nav_panel(
-          "Standard deviations",
-
-          br(),
-
-          h3("Standard deviations"),
-
-          p("Explore the predicted standard deviations of selected traits across selected taxa. Traits are shown in rows and taxa in columns. Values are rounded to three significant figures. The shown values can be downloaded as a csv file in the 'DOWNLOAD' tab."),
-
-          div(style = "display: flex; justify-content: center;",
-              tableOutput("sd_table"))
-        ),
-
-        nav_panel(
-          "Univariate plots",
-
-          br(),
-
-          h3("Univariate plots"),
-
-          p("Explore the distribution of each traits visually, and optionally compare distributions across different taxa."),
-
-          ## selectizeInput(
-          ##   inputId = "traits_uni",
-          ##   label = "Optionally subset traits",
-          ##   choices = NULL,
-          ##   multiple = TRUE,
-          ##   width = "80%",
-          ##   options = list(
-          ##     placeholder = "Type traits...",
-          ##     maxOptions = 500,
-          ##     plugins = list("remove_button"),
-          ##     create = FALSE
-          ##   )
-          ## ),
-
-          div(style = "display: flex; justify-content: center;",
-              plotOutput("plot_uni"))
-
-        ),
-
-        nav_panel(
-          "Bivariate plots",
-
-          br(),
-
-          h3("Bivariate plots"),
-
-          p("Explore the covariance between two traits visually, and optionally compare covariances across different taxa. All pairwise combinations between a maximum of 4 traits can be displayed at once. The covariance matrices can be downloaded as a zip archive in the 'DOWNLOAD' tab."),
-
-          selectizeInput(
-            inputId = "traits_bi",
-            label = "Select up to 4 traits",
-            choices = NULL,
-            multiple = TRUE,
-            width = "80%",
-            options = list(
-              placeholder = "Type traits...",
-              maxOptions = 500,
-              maxItems = 4,
-              plugins = list("remove_button"),
-              create = FALSE
-            )
-          ),
-
-          div(style = "display: flex; justify-content: center;",
-              plotOutput("plot_bi"))
-
-        ),
-
-        nav_panel(
-          "Download",
-
-          br(),
-
-          h3("Download"),
-
-          br(),
-
-          p("You can download the estimates and standard deviations (SD) for all your taxa and traits combined as a csv file in long format. The dataset has a column for the traits, one for the type of estimate ('est' or 'sd'), one for the taxa, and one with the value."),
-
-          div(style = "display: flex; justify-content: center;",
-              downloadButton("download_est",
-                             label = "Estimates and SD")),
-
-          br(), br(), br(),
-
-          p("Additionally, you can download the covariance matrix between traits for each species. A csv file by species will be created and all files will be compiled in a zip file."),
-
-          div(style = "display: flex; justify-content: center;",
-              downloadButton("download_cov",
-                             label = "Covariance matrices")),
-
-          ),
-
-        nav_panel(
-          "Information",
-
-          br(),
-
-          h3("Information"),
-
-          br(),
-
-          p("Information to database, methods, reference to paper, link to fish-trait-network, to R code, to shiny code,  ..."),
-
-          p("For more information on the fishtraitR package, see the ",
-            a("github page",
-              href = "https://github.com/fish-trait-network/fishtraitR",
-              target = "_blank"),".")
+      selectizeInput(
+        inputId = "traits_bi",
+        label = "Select up to 4 traits",
+        choices = NULL,
+        multiple = TRUE,
+        width = "80%",
+        options = list(
+          placeholder = "Type traits...",
+          maxOptions = 500,
+          maxItems = 4,
+          plugins = list("remove_button"),
+          create = FALSE
         )
+      ),
 
+      div(style = "display: flex; justify-content: center;",
+          plotOutput("plot_bi"))
+
+    ),
+
+    nav_panel(
+      "Download",
+
+      br(),
+
+      h3("Download"),
+
+      br(),
+
+      p("You can download the estimates and standard deviations (SD) for all your taxa and traits combined as a csv file in long format. The dataset has a column for the traits, one for the type of estimate ('est' or 'sd'), one for the taxa, and one with the value."),
+
+      div(style = "display: flex; justify-content: center;",
+          downloadButton("download_est",
+                         label = "Estimates and SD")),
+
+      br(), br(), br(),
+
+      p("Additionally, you can download the covariance matrix between traits for each species. A csv file by species will be created and all files will be compiled in a zip file."),
+
+      div(style = "display: flex; justify-content: center;",
+          downloadButton("download_cov",
+                         label = "Covariance matrices")),
+
+      ),
+
+
+    nav_panel(
+      "Metadata",
+
+      br(),
+
+      h3("Metadata"),
+
+      br(),
+
+      p("The below table is Table S1 from Thorson et al. (in prep; LINK TO PAPER) and provides information about the units, source, and description of all variables."),
+
+      tags$iframe(
+        src = "static/table_s1.pdf",
+        width = "100%",
+        height = "900px",
+        style = "border: none;"
       )
+
+    ),
+
+
+
+    nav_panel(
+      "Information",
+
+      br(),
+
+      h3("Information"),
+
+      br(),
+
+      p("Information to database, methods, reference to paper, link to fish-trait-network, to R code, to shiny code,  ..."),
+
+      p("For more information on the fishtraitR package, see the ",
+        a("github page",
+          href = "https://github.com/fish-trait-network/fishtraitR",
+          target = "_blank"),".")
+    )
+
+  )
 
 )
 
@@ -360,7 +389,7 @@ server <- function(input, output, session) {
                   "Please select at least one trait to display estimates."))
 
     validate(need(length(input$taxa) >= 1,
-           "Please select at least one taxa to display estimates."))
+                  "Please select at least one taxa to display estimates."))
 
     est <- get_est()
     est[-1] <- lapply(est[-1], signif, digits = 2)
@@ -375,7 +404,7 @@ server <- function(input, output, session) {
                   "Please select at least one trait to display SDs."))
 
     validate(need(length(input$taxa) >= 1,
-           "Please select at least one taxa to display SDs."))
+                  "Please select at least one taxa to display SDs."))
 
     sd <- get_sd()
     sd[-1] <- lapply(sd[-1], signif, digits = 2)
@@ -389,7 +418,7 @@ server <- function(input, output, session) {
                   "Please select at least one trait to display univariate plots."))
 
     validate(need(length(input$taxa) >= 1,
-           "Please select at least one taxa to display univariate plots."))
+                  "Please select at least one taxa to display univariate plots."))
 
     res <- results()
     req(res) ##, input$traits_uni)
@@ -417,12 +446,12 @@ server <- function(input, output, session) {
                   "Please select at least one trait to display bivariate plots."))
 
     validate(need(length(input$taxa) >= 1,
-           "Please select at least one taxa to display bivariate plots."))
+                  "Please select at least one taxa to display bivariate plots."))
 
     res <- results()
 
     validate(need(length(input$traits_bi) >= 2,
-           "Please select at least two traits to display bivariate plots (max 4)."))
+                  "Please select at least two traits to display bivariate plots (max 4)."))
 
     req(res)
 
