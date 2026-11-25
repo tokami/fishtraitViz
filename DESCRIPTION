@@ -1,0 +1,26 @@
+Package: fishtraitViz
+Title: Visualize fish traits
+Version: 0.0.1
+Date: 2026-11-25
+Authors@R:
+    c(person(c("Tobias", "K."), "Mildenberger",
+             role = c("aut", "cre"),
+             email = "tobm@dtu.dk",
+             comment = c(ORCID = "0000-0002-6631-7524")),
+      person(c("James", "T."), "Thorson",
+             role = c("aut", "cre"),
+             email = "James.Thorson@noaa.gov",
+             comment = c(ORCID = "0000-0001-7415-1010")))
+Maintainer: Tobias Mildenberger <tobm@dtu.dk>
+Description: A shiny application to visualize fish traits.
+License: GPL-3
+Encoding: UTF-8
+Depends:
+    R (>= 4.0),
+Imports:
+    shiny,
+    bslib,
+    reshape2
+Remotes:
+    tokami/fishtraitR@some_dots,
+    tokami/phylosem@legend_opts

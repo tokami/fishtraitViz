@@ -46,7 +46,7 @@ ui <- page_sidebar(
 
     h4("Traits"),
 
-    p("Select the traits you are interested in. You can select as many traits as are available in the database. Note that the available traits might differ between database versions. Use the remove buttons to remove individual selections or the buttons below to select all and remove all traits from the selection."),
+    p("Select the traits you are interested in. You can select as many traits as are available in the database. Note that the available traits might differ between database versions. Use the remove buttons to remove individual selections or the buttons below to select all and remove all traits from the selection. Find more information about the traits in the 'METADATA' tab."),
 
     selectizeInput(
       inputId = "traits",
